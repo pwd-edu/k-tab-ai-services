@@ -10,7 +10,7 @@ from .text_api_aws import amazon_ocr
 
 img_desc_router = APIRouter(tags=["Image Description"], prefix="/img-desc")
 
-@img_desc_router.get("/img_desc")
+@img_desc_router.post("/img_desc")
 async def get_img_desc(img_url:str):
     img_name = img_url.split('/')[4].split('?')[0] 
     data = urllib.request.urlopen(img_url).read()
