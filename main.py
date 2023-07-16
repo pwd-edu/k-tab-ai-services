@@ -1,17 +1,32 @@
-import requests
-import json
 import os
+import requests
+from fastapi import Body, FastAPI, Query
 from dotenv import load_dotenv
+from pydantic import BaseModel
+from pprint import pprint
 
-load_dotenv()
 
-MATHPIX_APP_ID = os.getenv('MATHPIX_APP_ID')
-MATHPIX_APP_KEY = os.getenv('MATHPIX_APP_KEY')
+load_dotenv(os.path.join(os.path.dirname(__file__), ".env"), verbose=True)
 
-def process_image(img_url:str = Query(..., description="image with math content", min_length=100)):
+MATHPIX_APP_ID = os.getenv('MATHPIX_APP_ID') or "demo"
+MATHPIX_APP_KEY = os.getenv('MATHPIX_APP_KEY') or "123"
+
+
+app = FastAPI()
+
+
+@app.get("/", status_code=200)
+async def home():
+    return {"msg": "app is working"}
+
+class MathpixParams(BaseModel):
+    img_url:str
+
+@app.post("/math")
+def process_image(params: MathpixParams):
     r = requests.post("https://api.mathpix.com/v3/text",
         json = {
-            "src": img_url,
+            "src": params.img_url,
             "math_inline_delimiters": ["$", "$"],
             "rm_spaces": True,
             "enable_tables_fallback":True,
@@ -29,7 +44,5 @@ def process_image(img_url:str = Query(..., description="image with math content"
             "Content-type": "application/json"
         }
     )
-    output = r.json()
-    content = output["text"].replace("\\*","\*").replace("\n"," ")
-    return content
+    return r.json()
 
